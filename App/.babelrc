@@ -1,4 +1,0 @@
-{
-	"presets":["env", "babel-preset-es2015", "react"],
-	"plugins": ["transform-class-properties", "transform-es2015-spread", "transform-object-rest-spread"]
-}
