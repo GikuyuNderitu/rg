@@ -3,7 +3,6 @@ import { render } from 'react-dom';
 
 import { Provider } from 'react-redux';
 
-import store from './app/state';
 import './index.sass';
 
 import App from './app/App';
