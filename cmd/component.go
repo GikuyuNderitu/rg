@@ -15,6 +15,8 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -23,15 +25,28 @@ import (
 var componentCmd = &cobra.Command{
 	Use:     "component",
 	Aliases: []string{"c"},
-	Short:   "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
+	Short:   "Generates a new component",
+	Long: `The 'component' suffix to generateA longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("component called with args %v\n", args)
+		if len(args) == 0 {
+			fmt.Printf("Provide a name for the component you want to create\n")
+			return
+		}
+
+		componentName := args[0]
+
+		fmt.Printf("Component Name: %v\n", componentName)
+
+		if err := writeComponent(componentName); err != nil {
+			log.Fatalf("Error Writing component: %v\n", err)
+
+		}
+
 	},
 }
 
@@ -47,4 +62,26 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// componentCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+/* WriteComponent will create a new component in the correct location. It will throw an error if it does not have a parent directory of "component"
+ * @param: componentName, function: the name of the component
+ * @return: error, occurs when function cannot locate the correct parent directory
+ */
+func writeComponent(componentName string) error {
+	curDir, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Error occurred reading file: %v\n", err)
+	}
+
+	dir, ok := findParentDir("components", curDir)
+
+	if !ok {
+		err := writeDirectory("components", curDir)
+		return fmt.Errorf("Failed to find components directory")
+	}
+
+	fmt.Printf("The directory you need to find: %v\nDirectory you found: %v\n", dir, curDir)
+
+	return nil
 }
