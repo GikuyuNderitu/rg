@@ -8,9 +8,7 @@ import './index.sass';
 import App from './app/App';
 
 const Root = () => (
-    <Provider store={store}>
-        <App/>
-    </Provider>
+    <App title="[){[.Name]}(]"/>
 );
 
 render(<Root />, document.querySelector('#root'));
