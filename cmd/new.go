@@ -15,18 +15,24 @@ package cmd
 
 import (
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"text/template"
 
 	"github.com/spf13/cobra"
 )
 
+// TODO: Add support for routing and redux flag redux
+
 const fullPermission = os.FileMode(int(0777))
 
 var templateDir string
+var projectName struct {
+	Name string
+}
 
 // newCmd represents the new command
 var newCmd = &cobra.Command{
@@ -47,15 +53,15 @@ to quickly create a Cobra application.`,
 		fmt.Printf("Working directory is %v\n", dir)
 
 		fmt.Println("new called")
-		projectName := args[0]
+		projectName.Name = args[0]
 
-		if err := os.Mkdir(projectName, fullPermission); err != nil {
-			err = os.RemoveAll(filepath.Join(dir, projectName))
+		if err := os.Mkdir(projectName.Name, fullPermission); err != nil {
+			err = os.RemoveAll(filepath.Join(dir, projectName.Name))
 			handleError(err)
 			log.Fatalf("I'm sorry. The directory %s already exists", projectName)
 		}
 
-		if err := os.Chdir("./" + projectName); err != nil {
+		if err := os.Chdir("./" + projectName.Name); err != nil {
 			log.Fatal(err)
 		}
 
@@ -66,10 +72,32 @@ to quickly create a Cobra application.`,
 			log.Fatalf("Something really bad went wrong")
 		}
 
-		WriteNewProject(entries, filepath.Join(dir, projectName), curTempDir, projectName)
+		WriteNewProject(entries, filepath.Join(dir, projectName.Name), curTempDir)
+
+		if err := os.Chdir(filepath.Join(dir, projectName.Name)); err != nil {
+			log.Fatalf("Problem changing directory to new project %v\n", err)
+		}
+
+		yarn := exec.Command("yarn", "install")
+
+		// stdout, err := cmd.StdoutPipe()
+
+		yarn.Stdout = os.Stdout
+
+		if err := yarn.Start(); err != nil {
+			log.Fatalf("From Start: %v\n", err)
+		}
+
+		if err := yarn.Wait(); err != nil {
+			log.Fatalf("From Wait: %v\n", err)
+		}
+
+		// if err := exec.Command("yarn", "install").Run(); err != nil {
+		// 	log.Fatalf("Problem running yarn install %v\n", err)
+		// }
 
 		log.Printf("Here is what entries spits out %v", entries)
-		fmt.Printf("Project Name is %v\n", projectName)
+		fmt.Printf("Project Name is %v\n", projectName.Name)
 	},
 }
 
@@ -84,34 +112,47 @@ func handleError(e error) {
 }
 
 // WriteNewProject takes a list of entries and writes them to the new Project
-func WriteNewProject(entries []os.FileInfo, root, curTempDir, projectName string) {
+func WriteNewProject(entries []os.FileInfo, root, curTempDir string) {
 	if len(entries) == 0 {
 		return
 	}
 
 	curEntry, remainder := entries[0], entries[1:]
-
 	curTemplateName := curTempDir + "/" + curEntry.Name()
-	newFileName := filepath.Join(root, curEntry.Name())
+	newName := filepath.Join(root, curEntry.Name())
 
-	tmpl, err := template.ParseFiles(curTemplateName)
-	handleError(err)
+	if curEntry.IsDir() {
+		os.Mkdir(newName, fullPermission)
+		newEntries, err := ioutil.ReadDir(curTemplateName)
+		handleError(err)
+		fmt.Printf("Writing new directory %v\n Contents From: %v\nNew Entries: %v\n\n", newName, curTemplateName, newEntries)
+		WriteNewProject(newEntries, newName, curTemplateName)
+	} else {
+		tmpl := template.Must(template.New(curEntry.Name()).Delims("[){[", "]}(]").ParseFiles(curTemplateName))
 
-	file, err := os.Create(newFileName)
-	handleError(err)
+		// handleError(err)
 
-	err = os.Chmod(newFileName, fullPermission)
-	fmt.Printf("chmod err\n")
-	handleError(err)
+		fmt.Printf("Template name is %v\n", tmpl.Name())
 
-	defer file.Close()
+		file, err := os.Create(newName)
+		handleError(err)
 
-	fmt.Printf("Template %v\nFile: %v\n", tmpl, file)
+		err = os.Chmod(newName, fullPermission)
+		// fmt.Printf("chmod err\n")
+		handleError(err)
 
-	err = tmpl.Execute(file, nil)
-	handleError(err)
+		defer file.Close()
 
-	fmt.Printf("Current file %v\n Root: %v\n Current Template Directory: %v\n Project Name: %v\n Remainder %v\n", curEntry.Name(), root, curTempDir+"/"+curEntry.Name(), projectName, remainder)
+		// fmt.Printf("Template %v\nFile: %v\n", tmpl, file)
+
+		err = tmpl.ExecuteTemplate(file, curEntry.Name(), projectName)
+		handleError(err)
+	}
+
+	// fmt.Printf("Current file %v\n Root: %v\n Current Template Directory: %v\n Project Name: %v\n Remainder %v\n", curEntry.Name(), root, curTempDir+"/"+curEntry.Name(), projectName, remainder)
+
+	WriteNewProject(remainder, root, curTempDir)
+	return
 
 	// if curEntry.IsDir() {
 	// 	// Write new directory in new project
