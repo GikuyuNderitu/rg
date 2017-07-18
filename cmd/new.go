@@ -55,10 +55,14 @@ to quickly create a Cobra application.`,
 		fmt.Println("new called")
 		projectName.Name = args[0]
 
+		if exists := inRgDirectory(dir); exists {
+			log.Fatal("I'm sorry, you're already in an rg project. Please navigate to a different folder")
+		}
+
 		if err := os.Mkdir(projectName.Name, fullPermission); err != nil {
 			err = os.RemoveAll(filepath.Join(dir, projectName.Name))
-			handleError(err)
-			log.Fatalf("I'm sorry. The directory %s already exists", projectName)
+			handleError(err, "from run new Command make dir block")
+			log.Fatalf("I'm sorry. The directory %v already exists", projectName)
 		}
 
 		if err := os.Chdir("./" + projectName.Name); err != nil {
@@ -105,12 +109,6 @@ to quickly create a Cobra application.`,
 // Provide Routing Setup
 // Provide Redux Initialization
 
-func handleError(e error) {
-	if e != nil {
-		fmt.Printf("From Handle Error %v\n", e)
-	}
-}
-
 // WriteNewProject takes a list of entries and writes them to the new Project
 func WriteNewProject(entries []os.FileInfo, root, curTempDir string) {
 	if len(entries) == 0 {
@@ -124,7 +122,7 @@ func WriteNewProject(entries []os.FileInfo, root, curTempDir string) {
 	if curEntry.IsDir() {
 		os.Mkdir(newName, fullPermission)
 		newEntries, err := ioutil.ReadDir(curTemplateName)
-		handleError(err)
+		handleError(err, "from write new project is cur dir block")
 		fmt.Printf("Writing new directory %v\n Contents From: %v\nNew Entries: %v\n\n", newName, curTemplateName, newEntries)
 		WriteNewProject(newEntries, newName, curTemplateName)
 	} else {
@@ -135,18 +133,18 @@ func WriteNewProject(entries []os.FileInfo, root, curTempDir string) {
 		fmt.Printf("Template name is %v\n", tmpl.Name())
 
 		file, err := os.Create(newName)
-		handleError(err)
+		handleError(err, "from writenewproject not curdir block")
 
 		err = os.Chmod(newName, fullPermission)
 		// fmt.Printf("chmod err\n")
-		handleError(err)
+		handleError(err, "from write new project chmod")
 
 		defer file.Close()
 
 		// fmt.Printf("Template %v\nFile: %v\n", tmpl, file)
 
 		err = tmpl.ExecuteTemplate(file, curEntry.Name(), projectName)
-		handleError(err)
+		handleError(err, "from write new project exectue template")
 	}
 
 	// fmt.Printf("Current file %v\n Root: %v\n Current Template Directory: %v\n Project Name: %v\n Remainder %v\n", curEntry.Name(), root, curTempDir+"/"+curEntry.Name(), projectName, remainder)
@@ -173,9 +171,23 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	newCmd.Flags().BoolP("redux", "x", false, "Help message for toggle")
-	dir, err := os.Getwd()
 
-	handleError(err)
+	dir, err := filepath.Abs("/home/atypdev/Coding_projects/go_projects/src/github.com/GikuyuNderitu/rg/")
+	handleError(err, "from new init block")
 
 	templateDir = filepath.Join(dir, "templates")
+}
+
+func inRgDirectory(dir string) bool {
+	fmt.Printf("From inrgdir:\t%v\n", dir)
+	if dir == "/" {
+		return false
+	}
+	os.Chdir(dir)
+	_, err := os.Stat(".rgConf")
+	if err == nil {
+		return true
+	}
+
+	return inRgDirectory(filepath.Dir(dir))
 }
