@@ -59,10 +59,18 @@ to quickly create a Cobra application.`,
 			log.Fatal("I'm sorry, you're already in an rg project. Please navigate to a different folder")
 		}
 
-		if err := os.Mkdir(projectName.Name, fullPermission); err != nil {
-			err = os.RemoveAll(filepath.Join(dir, projectName.Name))
-			handleError(err, "from run new Command make dir block")
-			log.Fatalf("I'm sorry. The directory %v already exists", projectName)
+		err := os.Chdir(dir)
+		handleError(err, "Error changing back to base directory")
+
+		err = os.Mkdir(projectName.Name, 0777)
+		if os.IsExist(err) {
+			removeErr := os.RemoveAll(filepath.Join(dir, projectName.Name))
+			handleError(removeErr, "from removing directory")
+			log.Fatalf("I'm sorry. The directory %v already exists", projectName.Name)
+
+		}
+		if err != nil {
+			log.Fatalf("Problem with making directory:\t%v\n", err)
 		}
 
 		if err := os.Chdir("./" + projectName.Name); err != nil {
