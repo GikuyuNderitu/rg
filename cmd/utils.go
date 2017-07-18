@@ -11,18 +11,31 @@ import (
 /*
  * This file contains all of the necessary uitility functions that the package will use and share amongst each other
  */
+const ()
 
-func findParentDir(toFind, curDir string) (dir string, found bool) {
-	log.Printf("Current dir: %v\n", curDir)
+func getParentDir(toFind, curDir string) (dir string, found bool) {
+	log.Printf("Current dir from get parent dir: %v\n", curDir)
 	if curDir == "/" {
 		return "", false
 	}
 
 	if toFind == filepath.Base(curDir) {
-		return toFind, true
+		return curDir, true
 	}
 
-	dir, found = findParentDir(toFind, filepath.Dir(curDir))
+	err := os.Chdir(curDir)
+	handleError(err, "Error changing directory from get parent dir")
+
+	_, err = os.Stat(".rgConf")
+	handleError(err, "from getparentdir os.Stat")
+	if err == nil {
+		return curDir, true
+	}
+	if !os.IsNotExist(err) {
+		return "Something bad happend", false
+	}
+
+	dir, found = getParentDir(toFind, filepath.Dir(curDir))
 	return
 }
 
@@ -47,4 +60,10 @@ func switchFile(file os.FileInfo) bool {
 
 	}
 	return false
+}
+
+func handleError(e error, tag string) {
+	if e != nil {
+		fmt.Printf("From Handle Error\n%v: %v\n", tag, e)
+	}
 }

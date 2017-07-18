@@ -14,11 +14,19 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
+	"text/template"
 
 	"github.com/spf13/cobra"
+)
+
+const (
+	toSliceOn = "src/app/components"
 )
 
 // componentCmd represents the component command
@@ -38,9 +46,14 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		componentName := args[0]
+		if len(strings.TrimSpace(args[0])) == 0 {
+			fmt.Printf("Provide a name for the component you want to create\n")
+			return
+		}
 
-		fmt.Printf("Component Name: %v\n", componentName)
+		componentName := transformComponentName(args[0])
+
+		fmt.Printf("Component Name: %v\n", templateDir)
 
 		if err := writeComponent(componentName); err != nil {
 			log.Fatalf("Error Writing component: %v\n", err)
@@ -74,14 +87,175 @@ func writeComponent(componentName string) error {
 		log.Fatalf("Error occurred reading file: %v\n", err)
 	}
 
-	dir, ok := findParentDir("components", curDir)
+	dir, ok := getParentDir("components", curDir)
 
 	if !ok {
-		err := writeDirectory("components", curDir)
+		log.Fatalf("Not found from get parent Dir: %v\n", dir)
+		if err := writeDirectory("components", curDir); err != nil {
+			log.Fatalf("Something bad happened writing components: %v\n", err)
+		}
 		return fmt.Errorf("Failed to find components directory")
+	}
+
+	if filepath.Base(dir) == "components" {
+		// Set component destination directory
+		err := os.Mkdir(componentName, fullPermission)
+		handleError(err, "from create new directory")
+		if err != nil {
+			panic(err)
+		}
+
+		componentDir := curDir + "/" + componentName
+		// Open index file in components directory and read data
+		data, err := getIndexData(filepath.Join(dir, "index.js"))
+		handleError(err, "from Get index data")
+		fmt.Printf("entered components block\n\n\n")
+
+		data.RestImports = append(data.RestImports, "import "+componentName+" from '."+strings.Split(componentDir, toSliceOn)[1]+"/"+componentName+"';")
+
+		data.Name = componentName
+		// data.Path = "." + strings.Split(componentDir, toSliceOn)[1] + "/" + componentName
+
+		// Write Template of index
+		writeNewIndexFile(filepath.Join(dir, "index.js"), data)
+		os.Chdir(componentDir)
+		newComponentFile, err := os.Create(componentName + ".js")
+		handleError(err, "from creating a new component file")
+		defer newComponentFile.Close()
+
+		sassFile, err := os.Create(componentName + ".sass")
+		handleError(err, "from creating new sass file")
+		defer sassFile.Close()
+
+		os.Chmod(newComponentFile.Name(), fullPermission)
+		os.Chmod(sassFile.Name(), fullPermission)
+
+		tmpl := template.Must(template.New("component").Delims("[){[", "]}(]").Parse(newComponentTemplate))
+
+		err = tmpl.Execute(newComponentFile, data)
+		handleError(err, "from executing new component template")
+
+		// If no index file exists, log a fatal error
+		// Add component with path relative to components directory index page
+		// Make folder and file structure with the component name in current directory
+		// return nil
+	} else {
+		// Write base components directory relative to the path returned from get parent dir
+		// Eg. os.Chdir(dir + src + app + components); ioutil.ReadFile("index.js"); if err != nil, os.Create("index.js") and template that
+		componentDir := filepath.Join(dir, "src", "app", "components", componentName)
+
+		err := os.MkdirAll(componentDir, fullPermission)
+		handleError(err, "error creating new directory")
+
+		rootDir := filepath.Join(dir, "src", "app", "components")
+
+		data, err := getIndexData(filepath.Join(rootDir, "index.js"))
+		handleError(err, "errror getting index data")
+
+		data.RestImports = append(data.RestImports, "import "+componentName+" from '."+strings.Split(componentDir, toSliceOn)[1]+"/"+componentName+"';")
+		data.Name = componentName
+
+		writeNewIndexFile(filepath.Join(rootDir, "index.js"), data)
+
+		os.Chdir(componentDir)
+		newComponentFile, err := os.Create(componentName + ".js")
+		handleError(err, "from creating a new component file")
+		defer newComponentFile.Close()
+
+		sassFile, err := os.Create(componentName + ".sass")
+		handleError(err, "from creating new sass file")
+		defer sassFile.Close()
+
+		os.Chmod(newComponentFile.Name(), fullPermission)
+		os.Chmod(sassFile.Name(), fullPermission)
+
+		tmpl := template.Must(template.New("component").Delims("[){[", "]}(]").Parse(newComponentTemplate))
+
+		err = tmpl.Execute(newComponentFile, data)
+		handleError(err, "from executing new component template")
+
+		// log.Fatalf("Return from Parent Dir: %v\n", dir)
 	}
 
 	fmt.Printf("The directory you need to find: %v\nDirectory you found: %v\n", dir, curDir)
 
 	return nil
+}
+
+type indexTemplateData struct {
+	RestImports []string
+	RestExports string
+	Name        string
+	Path        string
+}
+
+func getIndexData(filePath string) (*indexTemplateData, error) {
+	indexjs, err := os.Open(filePath)
+	handleError(err, "From write component componets block")
+	defer indexjs.Close()
+
+	scanner := bufio.NewScanner(indexjs)
+	data := indexTemplateData{}
+	scanner.Bytes()
+
+	for scanner.Scan() {
+		curLine := scanner.Text()
+		if strings.HasPrefix(curLine, "export {") {
+			fmt.Printf("Getting data from scanner:\t%v\n\n", curLine)
+			fmt.Printf("The slice equals = %v\n\n", curLine[8:len(curLine)-2])
+			data.RestExports = curLine[8 : len(curLine)-2]
+			return &data, nil
+		}
+		data.RestImports = append(data.RestImports, curLine)
+
+	}
+	return nil, fmt.Errorf("Error occured")
+}
+
+func writeNewIndexFile(filePath string, data *indexTemplateData) {
+	file, err := os.Create(filePath)
+	handleError(err, "From writenewIndex create file")
+
+	toImports := func(lines []string) (result string) {
+		delim := "\n"
+		if len(lines) == 0 {
+			return ""
+		}
+		for _, line := range lines {
+			if strings.TrimSpace(line) == "" {
+				continue
+			}
+			result += line + delim
+		}
+		return
+	}
+
+	toExports := func(line string) string {
+		fmt.Printf("From toexports from funcmap: \t%v\n", line)
+		if len(strings.TrimSpace(line)) == 0 {
+			return ""
+		}
+
+		return strings.TrimSpace(line) + ", "
+	}
+
+	funcs := template.FuncMap{
+		"toImports": toImports,
+		"toExports": toExports,
+	}
+
+	fmt.Printf("Here's what data says:\t%v\n\n", data)
+
+	tmpl := template.Must(template.New("index.js").Funcs(funcs).Delims("[){[", "]}(]").Parse(rootComponentDirTemplate))
+
+	err = tmpl.ExecuteTemplate(file, "index.js", &data)
+	handleError(err, "Error Executing Template")
+
+	return
+}
+
+func transformComponentName(name string) (newName string) {
+	newName += strings.ToUpper(string(name[0])) + string(name[1:])
+	// strings.EqualFold
+	return
 }
