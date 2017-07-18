@@ -21,6 +21,8 @@
 	[ ] Types should be generated at the application level via a "types.js" file. 
 	This will allow types to be accessible via components and state tool
 
+[ ] Refactor code to reduce code copied code in creating a new component
+
 [ ] Add ability to eject project
 
 [ ] Create formatted color output
