@@ -51,7 +51,7 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		componentName := transformComponentName(args[0])
+		componentName := transformName(args[0])
 
 		fmt.Printf("Component Name: %v\n", templateDir)
 
@@ -90,7 +90,6 @@ func writeComponent(componentName string) error {
 	dir, ok := getParentDir("components", curDir)
 
 	if !ok {
-		log.Fatalf("Not found from get parent Dir: %v\n", dir)
 		if err := writeDirectory("components", curDir); err != nil {
 			log.Fatalf("Something bad happened writing components: %v\n", err)
 		}
@@ -99,14 +98,15 @@ func writeComponent(componentName string) error {
 
 	if filepath.Base(dir) == "components" {
 		// Set component destination directory
+		componentDir := filepath.Join(curDir, componentName)
+
 		err := os.Mkdir(componentName, fullPermission)
 		handleError(err, "from create new directory")
 		if err != nil {
 			panic(err)
 		}
 
-		componentDir := curDir + "/" + componentName
-		// Open index file in components directory and read data
+		// Open index file in components directory and  read data
 		data, err := getIndexData(filepath.Join(dir, "index.js"))
 		handleError(err, "from Get index data")
 		fmt.Printf("entered components block\n\n\n")
@@ -254,7 +254,7 @@ func writeNewIndexFile(filePath string, data *indexTemplateData) {
 	return
 }
 
-func transformComponentName(name string) (newName string) {
+func transformName(name string) (newName string) {
 	newName += strings.ToUpper(string(name[0])) + string(name[1:])
 	// strings.EqualFold
 	return

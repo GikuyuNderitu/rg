@@ -67,3 +67,15 @@ func handleError(e error, tag string) {
 		fmt.Printf("From Handle Error\n%v: %v\n", tag, e)
 	}
 }
+
+/*
+ *writeTemplate takes a directory destination and a type of directory to render (eg. component, container, reducer etc.)
+ *@param dirToWrite - absolute path for the destination of the new folder to which you are going to write your new template
+ *@param dirType - the kind of directory it's going to be (eg. component, container, reducer etc.)
+ *@param parentDir - the parent directory of the directory to be created+
+ *@param templateName - the name input given by the user to use when writing the template
+ */
+func writeTemplate(dirToWrite, dirType, parentDir, templateName string) error {
+	fmt.Printf("Absolute Directory: %v\nDirrectory Type: %v\nName of template: %v\n", dirToWrite, dirType, templateName)
+	return nil
+}

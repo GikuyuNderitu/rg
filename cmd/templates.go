@@ -14,4 +14,15 @@ class [){[.Name]}(] extends Component {
 }
 
 export default [){[.Name]}(];`
+
+	newContainerTemplate = `import React, { Component } from 'react';
+import styles from './[){[.Name]}(].sass';
+
+class [){[.Name]}(] extends Component {
+	render() {
+		
+	}
+}
+
+export default [){[.Name]}(];`
 )
