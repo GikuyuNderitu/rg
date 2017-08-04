@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -24,8 +25,9 @@ import (
 
 // containerCmd represents the container command
 var containerCmd = &cobra.Command{
-	Use:   "container",
-	Short: "A brief description of your command",
+	Use:     "container",
+	Aliases: []string{"cont", "ct"},
+	Short:   "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -45,11 +47,10 @@ to quickly create a Cobra application.`,
 
 		container := transformName(args[0])
 
-		fmt.Printf("Container Name: %v\n", templateDir)
+		fmt.Printf("Container Name: %v\n", container)
 
 		if err := writeContainer(container); err != nil {
 			log.Fatalf("Error Writing component: %v\n", err)
-
 		}
 	},
 }
@@ -68,6 +69,29 @@ func writeContainer(containerName string) error {
 			log.Fatalf("Something bad happened writing container: %v\n", err)
 		}
 		return fmt.Errorf("Failed to find container directory")
+	}
+
+	if filepath.Base(dir) == "containers" {
+		// Set component destination directory
+		// dir is parentDir
+		containerDir := filepath.Join(curDir, containerName)
+
+		err := os.Mkdir(containerName, fullPermission)
+		handleError(err, "from create new directory")
+
+		// Handle Error from writeTemplate
+		writeTemplate(containerDir, "containers", dir, containerName)
+	} else {
+		// Write base components directory relative to the path returned from get parent dir
+		// Eg. os.Chdir(dir + src + app + components); ioutil.ReadFile("index.js"); if err != nil, os.Create("index.js") and template that
+		containerDir := filepath.Join(dir, "src", "app", "containers", containerName)
+		parentDir := filepath.Join(dir, "src", "app", "containers")
+
+		err := os.MkdirAll(containerDir, fullPermission)
+		handleError(err, "error creating new directory")
+
+		// Handle Error from writeTemplate
+		writeTemplate(containerDir, "containers", parentDir, containerName)
 	}
 
 	fmt.Printf("Container is: %v\n", dir)
