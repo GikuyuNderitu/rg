@@ -34,7 +34,7 @@ to quickly create a Cobra application.`,
 		fmt.Printf("Types given %v\n", args)
 
 		for _, val := range args {
-			fmt.Printf("What the type var would look like %v\n", formatTypeVar(val))
+			fmt.Printf("What the type var would look like %v\n", getType(val))
 		}
 
 	},
@@ -55,10 +55,20 @@ func init() {
 }
 
 func formatTypeValue(typeStr string) (newStr string) {
-	for i := 0; i < len(typeStr); i++ {
-		ch := string(typeStr[i])
-		if ch == "_" || ch == "-" {
+	myStr := strings.Title(typeStr)
+	makeTitle := false
 
+	for _, ch := range myStr {
+		curCh := string(ch)
+
+		if strings.ContainsAny(curCh, "#_,-&*/@!%^()+=.?><") {
+			newStr += "-"
+			makeTitle = true
+		} else if makeTitle {
+			newStr += strings.ToUpper(curCh)
+			makeTitle = false
+		} else {
+			newStr += curCh
 		}
 	}
 	return
@@ -66,7 +76,22 @@ func formatTypeValue(typeStr string) (newStr string) {
 
 func formatTypeVar(typeStr string) (newStr string) {
 	for _, ch := range typeStr {
-		newStr += strings.ToUpper(string(ch))
+		curCh := string(ch)
+
+		if strings.ContainsAny(curCh, "#_,-&*/@!%^()+=.?><") {
+			newStr += "_"
+		} else {
+			newStr += strings.ToUpper(curCh)
+		}
 	}
 	return
+}
+
+type reduxType struct {
+	Type  string
+	Value string
+}
+
+func getType(val string) *reduxType {
+	return &reduxType{formatTypeVar(val), formatTypeValue(val)}
 }

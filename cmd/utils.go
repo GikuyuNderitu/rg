@@ -86,9 +86,6 @@ func writeTemplate(dirToWrite, dirType, parentDir, templateName string) error {
 	// Open index file in components directory and  read data
 	data, err := getIndexData(filepath.Join(parentDir, "index.js"))
 	handleError(err, "from Get index data")
-	fmt.Printf("entered components block\n\n\n")
-
-	fmt.Printf("%v\n", len(data.RestImports))
 
 	toSliceOn := toSliceOnRoot + "/" + dirType
 
@@ -96,7 +93,6 @@ func writeTemplate(dirToWrite, dirType, parentDir, templateName string) error {
 
 	data.Name = templateName
 	fmt.Println(data.RestImports)
-	// data.Path = "." + strings.Split(componentDir, toSliceOn)[1] + "/" + templateName
 
 	// Write Template of index
 	writeNewIndexFile(filepath.Join(parentDir, "index.js"), data)
@@ -199,10 +195,8 @@ func writeNewIndexFile(filePath string, data *indexTemplateData) {
 	return
 }
 
-func transformName(name string) (newName string) {
-	newName += strings.ToUpper(string(name[0])) + string(name[1:])
-	// strings.EqualFold
-	return
+func transformName(name string) string {
+	return strings.ToUpper(string(name[0])) + string(name[1:])
 }
 
 func getTemplate(templateType string) string {
