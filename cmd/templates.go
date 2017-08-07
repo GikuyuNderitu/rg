@@ -9,7 +9,9 @@ import styles from './[){[.Name]}(].sass';
 
 class [){[.Name]}(] extends Component {
 	render() {
-		
+		return (
+			
+		)
 	}
 }
 
@@ -20,7 +22,9 @@ import styles from './[){[.Name]}(].sass';
 
 class [){[.Name]}(] extends Component {
 	render() {
-		
+		return(
+			
+		)
 	}
 }
 
