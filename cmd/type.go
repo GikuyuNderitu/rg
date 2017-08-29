@@ -15,6 +15,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -30,7 +31,12 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("type called")
+		fmt.Printf("Types given %v\n", args)
+
+		for _, val := range args {
+			fmt.Printf("What the type var would look like %v\n", getType(val))
+		}
+
 	},
 }
 
@@ -46,4 +52,46 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// typeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func formatTypeValue(typeStr string) (newStr string) {
+	myStr := strings.Title(typeStr)
+	makeTitle := false
+
+	for _, ch := range myStr {
+		curCh := string(ch)
+
+		if strings.ContainsAny(curCh, "#_,-&*/@!%^()+=.?><") {
+			newStr += "-"
+			makeTitle = true
+		} else if makeTitle {
+			newStr += strings.ToUpper(curCh)
+			makeTitle = false
+		} else {
+			newStr += curCh
+		}
+	}
+	return
+}
+
+func formatTypeVar(typeStr string) (newStr string) {
+	for _, ch := range typeStr {
+		curCh := string(ch)
+
+		if strings.ContainsAny(curCh, "#_,-&*/@!%^()+=.?><") {
+			newStr += "_"
+		} else {
+			newStr += strings.ToUpper(curCh)
+		}
+	}
+	return
+}
+
+type reduxType struct {
+	Type  string
+	Value string
+}
+
+func getType(val string) *reduxType {
+	return &reduxType{formatTypeVar(val), formatTypeValue(val)}
 }

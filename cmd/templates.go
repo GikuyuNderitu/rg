@@ -10,7 +10,20 @@ import styles from './[){[.Name]}(].sass';
 class [){[.Name]}(] extends Component {
 	render() {
 		return (
-			<div>[){[.Name]}(] component</div>
+			
+		)
+	}
+}
+
+export default [){[.Name]}(];`
+
+	newContainerTemplate = `import React, { Component } from 'react';
+import styles from './[){[.Name]}(].sass';
+
+class [){[.Name]}(] extends Component {
+	render() {
+		return(
+			<div>{'[){[.Name]}(] works'}</div>
 		)
 	}
 }
