@@ -101,7 +101,7 @@ func writeTemplate(dirToWrite, dirType, parentDir, templateName string) error {
 	handleError(err, "from creating a new component file")
 	defer newComponentFile.Close()
 
-	sassFile, err := os.Create(templateName + ".sass")
+	sassFile, err := os.Create(templateName + ".css")
 	handleError(err, "from creating new sass file")
 	defer sassFile.Close()
 

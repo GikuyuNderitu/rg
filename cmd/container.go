@@ -19,27 +19,19 @@ package cmd
 
 import (
 	"fmt"
-<<<<<<< HEAD
-=======
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
->>>>>>> 798e32668d41dbdeceb61fe49fb302b9266f8479
 
 	"github.com/spf13/cobra"
 )
 
 // containerCmd represents the container command
 var containerCmd = &cobra.Command{
-<<<<<<< HEAD
-	Use:   "container",
-	Short: "A brief description of your command",
-=======
 	Use:     "container",
 	Aliases: []string{"cont", "ct"},
 	Short:   "A brief description of your command",
->>>>>>> 798e32668d41dbdeceb61fe49fb302b9266f8479
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -47,13 +39,6 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-<<<<<<< HEAD
-		// TODO: Work your own magic here
-		fmt.Println("container called")
-	},
-}
-
-=======
 		if len(args) == 0 {
 			fmt.Printf("Provide a name for the container you want to create\n")
 			return
@@ -118,7 +103,6 @@ func writeContainer(containerName string) error {
 	return nil
 }
 
->>>>>>> 798e32668d41dbdeceb61fe49fb302b9266f8479
 func init() {
 	generateCmd.AddCommand(containerCmd)
 

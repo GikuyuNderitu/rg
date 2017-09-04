@@ -5,7 +5,7 @@ const (
 export { [){[toExports .RestExports]}(][){[.Name]}(] };`
 
 	newComponentTemplate = `import React, { Component } from 'react';
-import styles from './[){[.Name]}(].sass';
+import styles from './[){[.Name]}(].css';
 
 class [){[.Name]}(] extends Component {
 	render() {
@@ -18,7 +18,7 @@ class [){[.Name]}(] extends Component {
 export default [){[.Name]}(];`
 
 	newContainerTemplate = `import React, { Component } from 'react';
-import styles from './[){[.Name]}(].sass';
+import styles from './[){[.Name]}(].css';
 
 class [){[.Name]}(] extends Component {
 	render() {
