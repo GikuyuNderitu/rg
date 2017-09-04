@@ -1,8 +1,4 @@
 // Copyright © 2017 NAME HERE <EMAIL ADDRESS>
-<<<<<<< HEAD
-//
-=======
->>>>>>> 798e32668d41dbdeceb61fe49fb302b9266f8479
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
