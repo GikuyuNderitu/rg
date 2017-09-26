@@ -102,7 +102,7 @@ func writeTemplate(dirToWrite, dirType, parentDir, templateName string) error {
 	defer newComponentFile.Close()
 
 	sassFile, err := os.Create(templateName + ".css")
-	handleError(err, "from creating new sass file")
+	handleError(err, "from creating new css file")
 	defer sassFile.Close()
 
 	os.Chmod(newComponentFile.Name(), fullPermission)
