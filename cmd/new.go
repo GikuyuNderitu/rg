@@ -107,9 +107,6 @@ to quickly create a Cobra application.`,
 		// if err := exec.Command("yarn", "install").Run(); err != nil {
 		// 	log.Fatalf("Problem running yarn install %v\n", err)
 		// }
-
-		log.Printf("Here is what entries spits out %v", entries)
-		fmt.Printf("Project Name is %v\n", projectName.Name)
 	},
 }
 
@@ -178,7 +175,8 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	newCmd.Flags().BoolP("redux", "x", false, "Help message for toggle")
+	newCmd.Flags().BoolP("redux", "x", false, "Help message for redux")
+	newCmd.Flags().BoolP("router", "r", false, "Help message for react router")
 
 	dir, err := filepath.Abs("/home/atypdev/Coding_projects/go_projects/src/github.com/GikuyuNderitu/rg/")
 	handleError(err, "from new init block")
